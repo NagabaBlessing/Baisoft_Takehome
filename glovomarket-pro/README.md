@@ -25,7 +25,8 @@ View your app in AI Studio: https://ai.studio/apps/temp/1
 
 - By default, the frontend uses **relative `/api/*`** calls in dev and relies on the Vite proxy.
 - Vite proxy target defaults to `http://localhost:8000` (override with `VITE_DEV_BACKEND_URL`).
+- Keep `VITE_API_BASE_URL` **empty** in local dev so requests stay same-origin (prevents common CORS/mixed-content "Failed to fetch" issues).
 - If you see **"Failed to fetch"** during signup/login:
   1. Ensure Django backend is running on port `8000`.
-  2. Ensure `VITE_API_BASE_URL` is correct for your environment (or leave it empty in local dev).
+  2. Ensure `VITE_API_BASE_URL` is empty for local dev, or explicitly set to a reachable backend URL for deployed environments.
   3. If frontend is served over HTTPS, avoid pointing it to HTTP-only backend URLs (mixed-content block).
