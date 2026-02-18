@@ -40,11 +40,48 @@ class BusinessUserManagementTests(APITestCase):
         response = self.client.post(
             reverse('business-users-list'),
             {
-                'username': 'new_user',
-                'email': 'user@example.com',
+                'username': 'should_fail',
+                'email': 'viewer2@example.com',
                 'password': 'password123',
                 'role': UserRole.VIEWER,
             },
             format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class BusinessAdminSignupTests(APITestCase):
+    def test_signup_creates_business_and_admin(self):
+        response = self.client.post(
+            reverse('business_admin_signup'),
+            {
+                'business_name': 'NewBiz',
+                'username': 'bizadmin',
+                'email': 'bizadmin@example.com',
+                'first_name': 'Biz',
+                'last_name': 'Admin',
+                'password': 'password123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['role'], UserRole.ADMIN)
+        self.assertEqual(response.data['business']['name'], 'NewBiz')
+
+    def test_signup_rejects_duplicate_business_name(self):
+        Business.objects.create(name='Acme')
+        response = self.client.post(
+            reverse('business_admin_signup'),
+            {
+                'business_name': 'acme',
+                'username': 'admin2',
+                'email': 'admin2@example.com',
+                'first_name': 'Admin',
+                'last_name': 'Two',
+                'password': 'password123',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('business_name', response.data)

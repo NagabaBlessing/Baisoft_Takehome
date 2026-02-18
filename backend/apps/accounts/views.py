@@ -1,11 +1,15 @@
 from rest_framework import mixins, status, viewsets
-from rest_framework.generics import RetrieveAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import User
 from .permissions import IsBusinessUserManager
-from .serializers import UserCreateSerializer, UserSerializer
+from .serializers import (
+    BusinessAdminSignupSerializer,
+    UserCreateSerializer,
+    UserSerializer,
+)
 
 
 class CurrentUserView(RetrieveAPIView):
@@ -14,6 +18,17 @@ class CurrentUserView(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class BusinessAdminSignupView(CreateAPIView):
+    serializer_class = BusinessAdminSignupSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
 class BusinessUserViewSet(
