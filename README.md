@@ -29,7 +29,7 @@ This repository contains a full-stack **Product Marketplace** solution with:
 
 ### 1) Clone and enter project
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/NagabaBlessing/Baisoft_Takehome.git
 cd Baisoft_Takehome
 ```
 
@@ -66,20 +66,14 @@ Frontend runs at `http://localhost:5173` by default.
 
 ## Any known limitations
 
-- No full design-system tooltip component yet; current hover descriptions use native browser tooltips via `title` attributes.
 - No real checkout/order flow yet (`Add to Order` is demo behavior).
-- AI assistant output quality depends on LLM response and prompt context.
-- Limited frontend automated test coverage.
-- Production hardening items (advanced logging, rate-limits, deployment config) can be expanded further.
+- AI assistant output quality depends on LLM response and prompt context as gemini template was used
+- weak passwords are allowed
+- no products show on market but products can be added, will work on that with more time
 
 ## Anything more to communicate
 
-- The backend and frontend are structured for incremental scaling (new apps/services can be added without major refactor).
-- If you want next, I can add:
-  - richer custom tooltips,
-  - keyboard shortcut hints,
-  - toast notifications for approve/edit/delete actions,
-  - and an end-to-end test pass for role flows.
+- Tried to use Glovo like features for inspiration hence the name on the UI
 
 ## How to run the project
 
