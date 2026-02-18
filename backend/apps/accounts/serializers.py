@@ -1,6 +1,9 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Business, User
+from .models import Business, UserRole
+
+User = get_user_model()
 
 
 class BusinessSerializer(serializers.ModelSerializer):
@@ -31,5 +34,33 @@ class UserCreateSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         user = User(**validated_data, business=business)
         user.set_password(password)
+        user.save()
+        return user
+
+
+class BusinessAdminSignupSerializer(serializers.Serializer):
+    business_name = serializers.CharField(max_length=255)
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_business_name(self, value):
+        if Business.objects.filter(name__iexact=value.strip()).exists():
+            raise serializers.ValidationError('Business name already exists.')
+        return value.strip()
+
+    def create(self, validated_data):
+        business = Business.objects.create(name=validated_data['business_name'])
+        user = User(
+            username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            role=UserRole.ADMIN,
+            business=business,
+        )
+        user.set_password(validated_data['password'])
         user.save()
         return user
