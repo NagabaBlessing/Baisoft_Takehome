@@ -85,3 +85,41 @@ class BusinessAdminSignupTests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('business_name', response.data)
+
+    def test_signup_rejects_duplicate_username_with_400(self):
+        User.objects.create_user(username='existing_admin', password='password123')
+
+        response = self.client.post(
+            reverse('business_admin_signup'),
+            {
+                'business_name': 'FreshBiz',
+                'username': 'existing_admin',
+                'email': 'fresh@example.com',
+                'first_name': 'Fresh',
+                'last_name': 'Admin',
+                'password': 'password123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('username', response.data)
+
+    def test_signup_rejects_duplicate_email_with_400(self):
+        User.objects.create_user(username='existing_user', email='existing@example.com', password='password123')
+
+        response = self.client.post(
+            reverse('business_admin_signup'),
+            {
+                'business_name': 'NewBiz2',
+                'username': 'new_admin2',
+                'email': 'existing@example.com',
+                'first_name': 'New',
+                'last_name': 'Admin',
+                'password': 'password123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data)

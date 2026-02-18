@@ -1,4 +1,5 @@
 from pathlib import Path
+import importlib.util
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -6,6 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key-change-me')
 DEBUG = os.getenv('DJANGO_DEBUG', 'true').lower() == 'true'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '*').split(',')
+
+HAS_CORSHEADERS = importlib.util.find_spec('corsheaders') is not None
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -16,7 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',
+    *(['corsheaders'] if HAS_CORSHEADERS else []),
     'apps.core',
     'apps.accounts',
     'apps.products',
@@ -24,7 +27,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    *(['corsheaders.middleware.CorsMiddleware'] if HAS_CORSHEADERS else []),
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
