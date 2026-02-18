@@ -1,4 +1,8 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+
+// In local/dev environments, keep API calls relative by default so Vite's
+// `/api` proxy can route traffic to the backend without CORS/mixed-content issues.
+const API_BASE_URL = configuredApiBaseUrl.replace(/\/$/, '');
 const ACCESS_TOKEN_KEY = 'glovo_access_token';
 const REFRESH_TOKEN_KEY = 'glovo_refresh_token';
 
