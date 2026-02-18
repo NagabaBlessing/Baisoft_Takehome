@@ -38,7 +38,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) =
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 bg-gray-50"><h2 className="text-2xl font-bold text-gray-800">User Management</h2></div>
+      <div className="p-6 border-b border-gray-100 bg-gray-50">
+        <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
+      </div>
       <div className="p-6 border-b border-gray-100">
         <form onSubmit={handleAddUser} className="grid md:grid-cols-3 gap-3">
           <input className="p-2 border rounded" placeholder="First name" value={newUser.firstName} onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })} required />
@@ -47,14 +49,47 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) =
           <input type="email" className="p-2 border rounded" placeholder="Email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
           <input type="password" className="p-2 border rounded" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
           <select className="p-2 border rounded" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value as Role })}>
-            <option value={Role.ADMIN}>Admin</option><option value={Role.EDITOR}>Editor</option><option value={Role.APPROVER}>Approver</option><option value={Role.VIEWER}>Viewer</option>
+            <option value={Role.ADMIN}>Admin</option>
+            <option value={Role.EDITOR}>Editor</option>
+            <option value={Role.APPROVER}>Approver</option>
+            <option value={Role.VIEWER}>Viewer</option>
           </select>
-          <button className="md:col-span-3 px-6 py-2 bg-glovo-yellow text-glovo-dark font-bold rounded-lg">Add User</button>
+          <button className="md:col-span-3 px-6 py-2 bg-glovo-yellow text-glovo-dark font-bold rounded-lg" title="Add a new user" aria-label="Add a new user">
+            Add User
+          </button>
         </form>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left"><thead><tr><th className="p-4">Name</th><th className="p-4">Username</th><th className="p-4">Role</th><th className="p-4 text-right">Actions</th></tr></thead>
-          <tbody>{users.map((u) => <tr key={u.id}><td className="p-4">{u.name}</td><td className="p-4">{u.username}</td><td className="p-4">{u.role}</td><td className="p-4 text-right">{u.id !== currentUser.id && <button onClick={() => handleDeleteUser(u.id)} className="text-red-500"><Icons.Trash2 /></button>}</td></tr>)}</tbody>
+        <table className="w-full text-left">
+          <thead>
+            <tr>
+              <th className="p-4">Name</th>
+              <th className="p-4">Username</th>
+              <th className="p-4">Role</th>
+              <th className="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id}>
+                <td className="p-4">{u.name}</td>
+                <td className="p-4">{u.username}</td>
+                <td className="p-4">{u.role}</td>
+                <td className="p-4 text-right">
+                  {u.id !== currentUser.id && (
+                    <button
+                      onClick={() => handleDeleteUser(u.id)}
+                      className="text-red-500"
+                      title={`Delete ${u.name}`}
+                      aria-label={`Delete ${u.name}`}
+                    >
+                      <Icons.Trash2 />
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>

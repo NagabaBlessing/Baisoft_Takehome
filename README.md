@@ -1,102 +1,96 @@
 # Baisoft Take-Home
 
-This repository now contains:
+This repository contains a full-stack **Product Marketplace** solution with:
 
-- `glovomarket-pro/`: existing React/Vite frontend.
-- `backend/`: new Django + DRF backend for the Product Marketplace assignment.
+- `glovomarket-pro/`: React + Vite + TypeScript frontend.
+- `backend/`: Django + Django REST Framework backend.
 
-## Code Structure
+## What I implemented (which parts)
 
-```text
-Baisoft_Takehome/
-├── backend/
-│   ├── marketplace/                # Django project config (settings, urls, wsgi, asgi)
-│   ├── apps/
-│   │   ├── accounts/               # Business + User models, auth/user APIs, permissions
-│   │   ├── products/               # Product model, workflow APIs, approval rules
-│   │   └── core/                   # Shared app scaffold for future common modules
-│   ├── manage.py
-│   └── requirements.txt
-├── glovomarket-pro/
-│   ├── components/                 # Reusable UI blocks (navbar, cards, modal, chat)
-│   ├── pages/                      # Route-level screens (dashboard, login, marketplace)
-│   ├── services/                   # API/data service layer
-│   ├── App.tsx / index.tsx         # App composition and bootstrapping
-│   └── vite.config.ts
-└── README.md
+### Backend
+- JWT auth flow (`login`, `refresh`, `me`).
+- Business-aware users and role-based access (`Admin`, `Editor`, `Approver`, `Viewer`).
+- Product lifecycle workflow (`draft → pending_approval → approved`).
+- Approval rules and permission checks for product actions.
+- Public products endpoint for approved products only.
+- User management API for business admins.
+- Backend tests for auth/permission and product approval behavior.
+
+### Frontend
+- Public marketplace page for browsing products.
+- Role-aware dashboard for product CRUD and workflow actions.
+- User management screen for admins.
+- Auth screens for login and admin signup.
+- API service layer for auth/products integration.
+- AI chat assistant widget.
+- UX improvement: hover descriptions/tooltips (`title` + `aria-label`) on icon/action controls (approve, edit, delete, submit for approval, add product, and related icon actions).
+
+## Setup instructions
+
+### 1) Clone and enter project
+```bash
+git clone <your-repo-url>
+cd Baisoft_Takehome
 ```
 
-### Backend module responsibilities
-
-- `apps/accounts`: Owns business-aware identity and role permissions.
-- `apps/products`: Owns product lifecycle (`draft → pending_approval → approved`) and approval actions.
-- `marketplace/urls.py`: Wires all API routes.
-
-### Frontend module responsibilities
-
-- `pages/`: Screen-level containers that compose feature behavior.
-- `components/`: Presentational and reusable UI elements.
-- `services/`: Data-fetching and business-logic helpers that isolate API access from UI.
-
-## Backend Features Implemented
-
-- JWT authentication (`/api/auth/login`, `/api/auth/refresh`, `/api/auth/me`)
-- Business-aware users and roles (`Admin`, `Editor`, `Approver`, `Viewer`)
-- Role-based permissions for:
-  - user management
-  - product management
-  - product approval
-- Product workflow with statuses: `draft`, `pending_approval`, `approved`
-- Public product endpoint that only returns approved products
-- DRF pagination and basic filtering (`business_id`, `max_price`)
-- Django admin registrations for Business, User, Product
-- API tests covering permission and approval behavior
-
-## Quickstart (Backend)
-
+### 2) Backend setup
 ```bash
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env
 python manage.py migrate
-python manage.py createsuperuser
 python manage.py runserver
 ```
+Backend runs at `http://127.0.0.1:8000` by default.
 
-Run tests:
-
+### 3) Frontend setup
+Open a second terminal:
 ```bash
-python manage.py test
+cd glovomarket-pro
+npm install
+cp .env.example .env
+npm run dev
 ```
+Frontend runs at `http://localhost:5173` by default.
 
-## API Overview
+## Tech decisions and assumptions
 
-- `POST /api/auth/login/`
-- `POST /api/auth/refresh/`
-- `GET /api/auth/me/`
-- `GET|POST|PATCH|DELETE /api/products/`
-- `POST /api/products/{id}/approve/`
-- `GET /api/public/products/`
-- `GET|POST|PATCH|DELETE /api/users/`
+- **Django + DRF** chosen for fast, explicit RBAC and mature auth tooling.
+- **JWT auth** used for stateless API consumption from the frontend.
+- **Role-based UI + backend checks**: frontend hides unauthorized actions, backend enforces true permission boundaries.
+- **Status-driven workflow** keeps approval logic explicit and auditable.
+- **Service-layer frontend architecture** isolates API logic from presentational components.
+- Assumes each authenticated user belongs to one business context for scoped product/user operations.
 
-## Notes
+## Any known limitations
 
-- Internal endpoints are scoped to the authenticated user's `business`.
-- Only users with approval permission can approve products.
-- Public endpoints expose approved products only.
+- No full design-system tooltip component yet; current hover descriptions use native browser tooltips via `title` attributes.
+- No real checkout/order flow yet (`Add to Order` is demo behavior).
+- AI assistant output quality depends on LLM response and prompt context.
+- Limited frontend automated test coverage.
+- Production hardening items (advanced logging, rate-limits, deployment config) can be expanded further.
 
-## Suggested Next Steps
+## Anything more to communicate
 
-1. **Connect frontend services to Django API**
-   - Point frontend auth/product service methods to `/api/*` endpoints.
-   - Centralize token refresh and 401 retry behavior.
-2. **Harden backend API surface**
-   - Add stronger query filtering/search for products (name/category/order).
-   - Add validation/error response standardization.
-3. **Improve test coverage**
-   - Add serializer and view tests for edge cases (cross-business access, invalid transitions).
-   - Add frontend integration tests for login + product workflow.
-4. **Operational readiness**
-   - Add environment-based settings (`.env`) and CORS/CSRF deployment config.
-   - Add Docker setup and CI workflow for lint + tests.
+- The backend and frontend are structured for incremental scaling (new apps/services can be added without major refactor).
+- If you want next, I can add:
+  - richer custom tooltips,
+  - keyboard shortcut hints,
+  - toast notifications for approve/edit/delete actions,
+  - and an end-to-end test pass for role flows.
+
+## How to run the project
+
+### Option A: Local development (recommended)
+1. Start backend from `backend/` with `python manage.py runserver`.
+2. Start frontend from `glovomarket-pro/` with `npm run dev`.
+3. Open `http://localhost:5173`.
+
+### Option B: Docker Compose
+From repository root:
+```bash
+docker compose up --build
+```
+(Use this if your local environment matches the compose expectations.)
