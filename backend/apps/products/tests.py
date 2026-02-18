@@ -10,18 +10,13 @@ from apps.products.models import Product, ProductStatus
 
 class ProductWorkflowTests(APITestCase):
     def setUp(self):
-        self.business = Business.objects.create(name='Acme Inc')
+        self.business = Business.objects.create(name='Stark Industries')
+        self.business_two = Business.objects.create(name='Wayne Enterprises')
         self.editor = User.objects.create_user(
-            username='editor',
-            password='password123',
-            business=self.business,
-            role=UserRole.EDITOR,
+            username='editor', password='password123', business=self.business, role=UserRole.EDITOR
         )
         self.approver = User.objects.create_user(
-            username='approver',
-            password='password123',
-            business=self.business,
-            role=UserRole.APPROVER,
+            username='approver', password='password123', business=self.business, role=UserRole.APPROVER
         )
 
     def authenticate(self, username: str, password: str):
@@ -62,3 +57,35 @@ class ProductWorkflowTests(APITestCase):
         public_response = self.client.get(reverse('public_products'))
         self.assertEqual(public_response.status_code, status.HTTP_200_OK)
         self.assertEqual(public_response.data['results'][0]['status'], ProductStatus.APPROVED)
+
+    def test_public_product_filter_validation(self):
+        response = self.client.get(f"{reverse('public_products')}?max_price=invalid")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_product_filter_price_range_validation(self):
+        self.authenticate('editor', 'password123')
+        response = self.client.get(f"{reverse('products-list')}?min_price=20&max_price=10")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_product_filter_search_and_ordering(self):
+        Product.objects.create(
+            business=self.business,
+            created_by=self.editor,
+            name='Monitor',
+            description='4K monitor',
+            price=Decimal('220.00'),
+            status=ProductStatus.DRAFT,
+        )
+        Product.objects.create(
+            business=self.business,
+            created_by=self.editor,
+            name='Mousepad',
+            description='Gaming mousepad',
+            price=Decimal('20.00'),
+            status=ProductStatus.DRAFT,
+        )
+
+        self.authenticate('editor', 'password123')
+        response = self.client.get(f"{reverse('products-list')}?search=Mouse&ordering=price")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'][0]['name'], 'Mousepad')

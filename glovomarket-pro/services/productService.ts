@@ -1,101 +1,85 @@
-import { Product, ProductStatus, Role, User } from '../types';
-import { dataService } from './data';
+import { PaginatedResponse, Product, ProductStatus } from '../types';
+import { apiRequest } from './apiClient';
+
+type ApiProduct = {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  status: ProductStatus;
+  created_by: string;
+  approved_by: string | null;
+  created_at: string;
+};
+
+const mapProduct = (product: ApiProduct): Product => ({
+  id: String(product.id),
+  name: product.name,
+  description: product.description,
+  price: Number(product.price),
+  status: product.status,
+  createdBy: product.created_by,
+  approvedBy: product.approved_by,
+  businessId: '',
+  createdAt: product.created_at,
+});
 
 export const productService = {
-  getAllProducts: (): Product[] => {
-    return dataService.getProducts();
+  getApprovedProducts: async (filters?: { search?: string; businessId?: string; maxPrice?: number }): Promise<Product[]> => {
+    const params = new URLSearchParams();
+    if (filters?.search) params.set('search', filters.search);
+    if (filters?.businessId) params.set('business_id', filters.businessId);
+    if (filters?.maxPrice !== undefined) params.set('max_price', String(filters.maxPrice));
+
+    const query = params.toString();
+    const response = await apiRequest<PaginatedResponse<ApiProduct>>(`/api/public/products/${query ? `?${query}` : ''}`);
+    return response.results.map(mapProduct);
   },
 
-  getApprovedProducts: (): Product[] => {
-    return dataService.getProducts().filter(p => p.status === ProductStatus.APPROVED);
+  getProductsForUser: async (filters?: { status?: ProductStatus; search?: string; ordering?: string }): Promise<Product[]> => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.set('status', filters.status);
+    if (filters?.search) params.set('search', filters.search);
+    if (filters?.ordering) params.set('ordering', filters.ordering);
+
+    const query = params.toString();
+    const response = await apiRequest<PaginatedResponse<ApiProduct>>(`/api/products/${query ? `?${query}` : ''}`);
+    return response.results.map(mapProduct);
   },
 
-  getProductsForUser: (user: User): Product[] => {
-    if (user.role === Role.ADMIN || user.role === Role.APPROVER) {
-      // Admins and Approvers see everything in their business
-      return dataService.getProducts().filter(p => p.businessId === user.businessId);
-    }
-    if (user.role === Role.EDITOR) {
-      // Editors see everything in their business (could restrict to own, but usually business level)
-      return dataService.getProducts().filter(p => p.businessId === user.businessId);
-    }
-    return []; // Viewers shouldn't use this method
+  createProduct: async (productData: { name: string; description: string; price: number; status?: ProductStatus }): Promise<Product> => {
+    const product = await apiRequest<ApiProduct>('/api/products/', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...productData,
+        status: productData.status || ProductStatus.DRAFT,
+      }),
+    });
+    return mapProduct(product);
   },
 
-  createProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'status'>, user: User) => {
-    // STRICT: Only Admin or Editor can create
-    if (user.role !== Role.ADMIN && user.role !== Role.EDITOR) {
-         throw new Error('Unauthorized: Only Admins or Editors can create products.');
-    }
-
-    const newProduct: Product = {
-      ...productData,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      status: ProductStatus.DRAFT, // Default to draft
-      businessId: user.businessId,
-      createdBy: user.id
-    };
-    dataService.saveProduct(newProduct);
-    return newProduct;
+  updateProduct: async (productId: string, updates: { name: string; description: string; price: number; status: ProductStatus }): Promise<Product> => {
+    const product = await apiRequest<ApiProduct>(`/api/products/${productId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    return mapProduct(product);
   },
 
-  updateProduct: (product: Product, user: User) => {
-    // STRICT: Only Admin or Editor can edit
-    if (user.role !== Role.ADMIN && user.role !== Role.EDITOR) {
-        throw new Error('Unauthorized: You do not have permission to edit products.');
-    }
-    
-    // STRICT: Ensure user belongs to same business
-    if (product.businessId !== user.businessId) {
-        throw new Error('Unauthorized: Cannot edit products from another business.');
-    }
-
-    dataService.saveProduct(product);
+  submitForApproval: async (productId: string): Promise<Product> => {
+    const product = await apiRequest<ApiProduct>(`/api/products/${productId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: ProductStatus.PENDING_APPROVAL }),
+    });
+    return mapProduct(product);
   },
 
-  changeStatus: (productId: string, newStatus: ProductStatus, user: User) => {
-    const products = dataService.getProducts();
-    const product = products.find(p => p.id === productId);
-    if (!product) throw new Error('Product not found');
-
-    if (product.businessId !== user.businessId) {
-        throw new Error('Unauthorized');
-    }
-
-    // STRICT: Approval Logic
-    if (newStatus === ProductStatus.APPROVED) {
-       if (user.role !== Role.APPROVER && user.role !== Role.ADMIN) {
-         throw new Error('Unauthorized: Only Approvers or Admins can approve products.');
-       }
-    }
-    
-    // STRICT: Submit Logic (Draft -> Pending)
-    if (newStatus === ProductStatus.PENDING_APPROVAL) {
-        // Editors or Admins can submit
-        if (user.role !== Role.EDITOR && user.role !== Role.ADMIN) {
-            throw new Error('Unauthorized: You cannot submit products for approval.');
-        }
-    }
-
-    product.status = newStatus;
-    dataService.saveProduct(product);
+  approveProduct: async (productId: string): Promise<Product> => {
+    const product = await apiRequest<ApiProduct>(`/api/products/${productId}/approve/`, { method: 'POST' });
+    return mapProduct(product);
   },
 
-  deleteProduct: (productId: string, user: User) => {
-    // STRICT: Only Admin can delete (Safety choice), or Editor if we want them to delete their own.
-    // Based on "Any authorized user can create or edit", usually delete is stricter.
-    if (user.role !== Role.ADMIN && user.role !== Role.EDITOR) {
-       throw new Error('Unauthorized: Only Admins or Editors can delete products.');
-    }
-    
-    // Fetch to check ownership/business
-    const products = dataService.getProducts();
-    const product = products.find(p => p.id === productId);
-    if (product && product.businessId !== user.businessId) {
-         throw new Error('Unauthorized');
-    }
-
-    dataService.deleteProduct(productId);
-  }
+  deleteProduct: async (productId: string) => {
+    await apiRequest(`/api/products/${productId}/`, { method: 'DELETE' });
+  },
 };
