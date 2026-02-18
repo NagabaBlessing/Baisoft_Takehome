@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { User, Product, Role, ProductStatus } from '../types';
 import { productService } from '../services/productService';
 import { Icons } from '../constants';
+import { formatUsd, formatUgxFromUsd } from '../services/currency';
 
 interface DashboardProps {
   user: User;
@@ -117,7 +118,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             {products.map((p) => (
               <tr key={p.id}>
                 <td className="p-4">{p.name}</td>
-                <td className="p-4">${p.price.toFixed(2)}</td>
+                <td className="p-4">
+                  <span className="block font-medium">{formatUsd(p.price)}</span>
+                  <span className="block text-xs text-gray-500">{formatUgxFromUsd(p.price)}</span>
+                </td>
                 <td className="p-4">{p.status}</td>
                 <td className="p-4 text-right space-x-2">
                   {canCreate && (
