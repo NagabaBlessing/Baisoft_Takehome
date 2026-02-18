@@ -2,6 +2,7 @@ import React from 'react';
 import { Product, ProductStatus } from '../types';
 import { dataService } from '../services/data';
 import { Icons } from '../constants';
+import { formatUsd, formatUgxFromUsd } from '../services/currency';
 
 interface ProductCardProps {
   product: Product;
@@ -34,8 +35,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-1">
             <h3 className="text-lg font-bold text-gray-800 leading-tight">{product.name}</h3>
-            <span className="text-lg font-bold text-glovo-green whitespace-nowrap">
-                ${product.price.toFixed(2)}
+            <span className="text-right whitespace-nowrap">
+                <span className="block text-lg font-bold text-glovo-green">{formatUsd(product.price)}</span>
+                <span className="block text-xs text-gray-500">{formatUgxFromUsd(product.price)}</span>
             </span>
         </div>
 

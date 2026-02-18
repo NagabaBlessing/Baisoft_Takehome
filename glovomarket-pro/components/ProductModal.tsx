@@ -2,6 +2,7 @@ import React from 'react';
 import { Product } from '../types';
 import { dataService } from '../services/data';
 import { Icons } from '../constants';
+import { formatUsd, formatUgxFromUsd } from '../services/currency';
 
 interface ProductModalProps {
   product: Product;
@@ -48,8 +49,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
                   <span className="font-medium">Sold by: {businessName}</span>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-glovo-green ml-4 whitespace-nowrap">
-                ${product.price.toFixed(2)}
+              <span className="text-right ml-4 whitespace-nowrap">
+                <span className="block text-2xl font-bold text-glovo-green">{formatUsd(product.price)}</span>
+                <span className="block text-xs text-gray-500">{formatUgxFromUsd(product.price)}</span>
               </span>
            </div>
 

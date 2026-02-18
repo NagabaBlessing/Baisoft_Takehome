@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { productService } from './productService';
+import { formatUsd, formatUgxFromUsd } from './currency';
 
 const apiKey = process.env.API_KEY || '';
 
@@ -15,7 +16,7 @@ export const geminiService = {
       
       // Construct a lean string representation of products to save tokens
       const productContext = products.map(p => 
-        `- ${p.name}: $${p.price} (ID: ${p.id}). ${p.description}`
+        `- ${p.name}: ${formatUsd(p.price)} (${formatUgxFromUsd(p.price)}) (ID: ${p.id}). ${p.description}`
       ).join('\n');
 
       const systemInstruction = `
