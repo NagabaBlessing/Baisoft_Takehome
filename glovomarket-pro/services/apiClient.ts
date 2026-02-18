@@ -1,17 +1,9 @@
-const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
-const API_BASE_URL = configuredBaseUrl.replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const ACCESS_TOKEN_KEY = 'glovo_access_token';
 const REFRESH_TOKEN_KEY = 'glovo_refresh_token';
 
 const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
 const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
-
-const buildUrl = (path: string) => {
-  if (API_BASE_URL) {
-    return `${API_BASE_URL}${path}`;
-  }
-  return path;
-};
 
 export const tokenStorage = {
   setTokens: (access: string, refresh: string) => {
@@ -29,17 +21,11 @@ const refreshAccessToken = async (): Promise<string | null> => {
   const refresh = getRefreshToken();
   if (!refresh) return null;
 
-  let response: Response;
-  try {
-    response = await fetch(buildUrl('/api/auth/refresh/'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh }),
-    });
-  } catch {
-    tokenStorage.clear();
-    return null;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/auth/refresh/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh }),
+  });
 
   if (!response.ok) {
     tokenStorage.clear();
@@ -62,14 +48,7 @@ export const apiRequest = async <T>(path: string, options: RequestInit = {}, ret
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  let response: Response;
-  try {
-    response = await fetch(buildUrl(path), { ...options, headers });
-  } catch {
-    throw new Error(
-      `Cannot reach backend API. Start Django server and verify VITE_API_BASE_URL (current: ${API_BASE_URL || 'using Vite proxy / same-origin'}).`
-    );
-  }
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
 
   if (response.status === 401 && retry) {
     const newAccess = await refreshAccessToken();
@@ -84,7 +63,7 @@ export const apiRequest = async <T>(path: string, options: RequestInit = {}, ret
       const errorData = await response.json();
       message = errorData.detail || JSON.stringify(errorData);
     } catch {
-      // keep fallback
+      // keep fallback message
     }
     throw new Error(message);
   }
@@ -97,5 +76,5 @@ export const apiRequest = async <T>(path: string, options: RequestInit = {}, ret
 };
 
 export const apiConfig = {
-  baseUrl: API_BASE_URL || '(vite proxy / same-origin)',
+  baseUrl: API_BASE_URL,
 };
