@@ -24,6 +24,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   useEffect(() => { loadData(); }, [user.id]);
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setEditForm((prev) => ({ ...prev, imageUrl: result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editForm.name || !editForm.price) return;
@@ -34,6 +46,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           description: editForm.description || '',
           price: Number(editForm.price),
           status: editForm.status || ProductStatus.DRAFT,
+          imageUrl: editForm.imageUrl || '',
         });
       } else {
         await productService.createProduct({
@@ -41,6 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           description: editForm.description || '',
           price: Number(editForm.price),
           status: ProductStatus.DRAFT,
+          imageUrl: editForm.imageUrl || '',
         });
       }
       setIsEditing(false);
@@ -106,6 +120,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <input className="w-full p-2 border rounded" placeholder="Name" value={editForm.name || ''} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
             <input type="number" className="w-full p-2 border rounded" placeholder="Price" value={editForm.price || ''} onChange={(e) => setEditForm({ ...editForm, price: Number(e.target.value) })} required />
             <textarea className="w-full p-2 border rounded" placeholder="Description" value={editForm.description || ''} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+            <input className="w-full p-2 border rounded" placeholder="Image link (https://...)" value={editForm.imageUrl || ''} onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })} />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">Or upload an image from your device</label>
+              <input type="file" accept="image/*" className="w-full p-2 border rounded bg-white" onChange={handleImageUpload} />
+            </div>
+            {editForm.imageUrl && (
+              <img src={editForm.imageUrl} alt="Product preview" className="h-28 w-28 object-cover rounded border" />
+            )}
             <div className="flex gap-2 justify-end"><button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 border rounded">Cancel</button><button type="submit" className="px-4 py-2 bg-glovo-green text-white rounded">Save</button></div>
           </form>
         </div>

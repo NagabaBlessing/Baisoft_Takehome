@@ -6,6 +6,7 @@ type ApiProduct = {
   name: string;
   description: string;
   price: string;
+  image_url: string;
   status: ProductStatus;
   created_by: string;
   approved_by: string | null;
@@ -17,6 +18,7 @@ const mapProduct = (product: ApiProduct): Product => ({
   name: product.name,
   description: product.description,
   price: Number(product.price),
+  imageUrl: product.image_url || '',
   status: product.status,
   createdBy: product.created_by,
   approvedBy: product.approved_by,
@@ -47,21 +49,25 @@ export const productService = {
     return response.results.map(mapProduct);
   },
 
-  createProduct: async (productData: { name: string; description: string; price: number; status?: ProductStatus }): Promise<Product> => {
+  createProduct: async (productData: { name: string; description: string; price: number; imageUrl?: string; status?: ProductStatus }): Promise<Product> => {
     const product = await apiRequest<ApiProduct>('/api/products/', {
       method: 'POST',
       body: JSON.stringify({
         ...productData,
         status: productData.status || ProductStatus.DRAFT,
+        image_url: productData.imageUrl || '',
       }),
     });
     return mapProduct(product);
   },
 
-  updateProduct: async (productId: string, updates: { name: string; description: string; price: number; status: ProductStatus }): Promise<Product> => {
+  updateProduct: async (productId: string, updates: { name: string; description: string; price: number; imageUrl?: string; status: ProductStatus }): Promise<Product> => {
     const product = await apiRequest<ApiProduct>(`/api/products/${productId}/`, {
       method: 'PATCH',
-      body: JSON.stringify(updates),
+      body: JSON.stringify({
+        ...updates,
+        image_url: updates.imageUrl || '',
+      }),
     });
     return mapProduct(product);
   },
