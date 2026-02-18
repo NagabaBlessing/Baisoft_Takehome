@@ -15,6 +15,7 @@ class Product(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='products', on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    image_url = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     approved_by = models.ForeignKey(
