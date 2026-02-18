@@ -87,7 +87,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <h2 className="text-2xl font-bold text-gray-800">Business Dashboard</h2>
           <p className="text-sm text-gray-500">Manage your inventory and approvals</p>
         </div>
-        {canCreate && <button onClick={() => { setEditForm({}); setIsEditing(true); }} className="bg-glovo-yellow text-glovo-dark px-4 py-2 rounded-lg font-bold shadow"><Icons.Plus /></button>}
+        {canCreate && (
+          <button
+            onClick={() => { setEditForm({}); setIsEditing(true); }}
+            className="bg-glovo-yellow text-glovo-dark px-4 py-2 rounded-lg font-bold shadow"
+            title="Add product"
+            aria-label="Add product"
+          >
+            <Icons.Plus />
+          </button>
+        )}
       </div>
 
       {isEditing && (
@@ -111,10 +120,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 <td className="p-4">${p.price.toFixed(2)}</td>
                 <td className="p-4">{p.status}</td>
                 <td className="p-4 text-right space-x-2">
-                  {canCreate && <button onClick={() => { setEditForm(p); setIsEditing(true); }} className="p-2"><Icons.Edit /></button>}
-                  {canCreate && p.status === ProductStatus.DRAFT && <button onClick={() => handleSubmitForApproval(p.id)} className="p-2"><Icons.Shield /></button>}
-                  {canApprove && p.status === ProductStatus.PENDING_APPROVAL && <button onClick={() => handleApprove(p.id)} className="p-2"><Icons.Check /></button>}
-                  {canCreate && <button onClick={() => handleDelete(p.id)} className="p-2 text-red-500"><Icons.Trash2 /></button>}
+                  {canCreate && (
+                    <button
+                      onClick={() => { setEditForm(p); setIsEditing(true); }}
+                      className="p-2"
+                      title={`Edit ${p.name}`}
+                      aria-label={`Edit ${p.name}`}
+                    >
+                      <Icons.Edit />
+                    </button>
+                  )}
+                  {canCreate && p.status === ProductStatus.DRAFT && (
+                    <button
+                      onClick={() => handleSubmitForApproval(p.id)}
+                      className="p-2"
+                      title={`Submit ${p.name} for approval`}
+                      aria-label={`Submit ${p.name} for approval`}
+                    >
+                      <Icons.Shield />
+                    </button>
+                  )}
+                  {canApprove && p.status === ProductStatus.PENDING_APPROVAL && (
+                    <button
+                      onClick={() => handleApprove(p.id)}
+                      className="p-2"
+                      title={`Approve ${p.name}`}
+                      aria-label={`Approve ${p.name}`}
+                    >
+                      <Icons.Check />
+                    </button>
+                  )}
+                  {canCreate && (
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="p-2 text-red-500"
+                      title={`Delete ${p.name}`}
+                      aria-label={`Delete ${p.name}`}
+                    >
+                      <Icons.Trash2 />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

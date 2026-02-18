@@ -17,6 +17,8 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onViewChange, cu
           {/* Logo */}
           <div 
             className="flex items-center space-x-2 cursor-pointer group"
+            title="Go to marketplace"
+            aria-label="Go to marketplace"
             onClick={() => onViewChange('public')}
           >
             <div className="bg-white p-1.5 rounded-full shadow-sm group-hover:scale-105 transition-transform">
@@ -77,6 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onViewChange, cu
                   onClick={onLogout}
                   className="p-2 text-glovo-dark hover:bg-red-100 hover:text-red-600 rounded-full transition"
                   title="Logout"
+                  aria-label="Logout"
                 >
                   <Icons.LogOut />
                 </button>

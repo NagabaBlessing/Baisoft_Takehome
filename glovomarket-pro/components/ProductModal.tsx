@@ -19,6 +19,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 p-2 bg-white/80 hover:bg-white rounded-full text-gray-800 transition z-10 shadow-sm"
+          title="Close product details"
+          aria-label="Close product details"
         >
           <Icons.X />
         </button>
@@ -60,6 +62,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
              <button 
                onClick={onClose}
                className="w-full bg-glovo-yellow text-glovo-dark font-bold py-3 rounded-xl hover:bg-yellow-400 transition transform active:scale-95 shadow-md"
+               title="Add product to order"
+               aria-label="Add product to order"
              >
                Add to Order (Demo)
              </button>
