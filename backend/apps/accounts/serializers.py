@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers
 
 from .models import Business, UserRole
@@ -29,6 +30,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password', 'role']
         read_only_fields = ['id']
 
+    def validate_username(self, value):
+        if User.objects.filter(username__iexact=value.strip()).exists():
+            raise serializers.ValidationError('A user with this username already exists.')
+        return value.strip()
+
+    def validate_email(self, value):
+        normalized_email = value.strip()
+        if normalized_email and User.objects.filter(email__iexact=normalized_email).exists():
+            raise serializers.ValidationError('A user with this email already exists.')
+        return normalized_email
+
     def create(self, validated_data):
         business = self.context['business']
         password = validated_data.pop('password')
@@ -51,6 +63,18 @@ class BusinessAdminSignupSerializer(serializers.Serializer):
             raise serializers.ValidationError('Business name already exists.')
         return value.strip()
 
+    def validate_username(self, value):
+        if User.objects.filter(username__iexact=value.strip()).exists():
+            raise serializers.ValidationError('A user with this username already exists.')
+        return value.strip()
+
+    def validate_email(self, value):
+        normalized_email = value.strip()
+        if normalized_email and User.objects.filter(email__iexact=normalized_email).exists():
+            raise serializers.ValidationError('A user with this email already exists.')
+        return normalized_email
+
+    @transaction.atomic
     def create(self, validated_data):
         business = Business.objects.create(name=validated_data['business_name'])
         user = User(
