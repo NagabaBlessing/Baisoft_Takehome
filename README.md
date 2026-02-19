@@ -69,7 +69,7 @@ Frontend runs at `http://localhost:5173` by default.
 - No real checkout/order flow yet (`Add to Order` is demo behavior).
 - AI assistant output quality depends on LLM response and prompt context as gemini template was used
 - weak passwords are allowed
-- no products show on market but products can be added, will work on that with more time
+- There is no email/phone number verification for sign up
 
 ## Anything more to communicate
 
