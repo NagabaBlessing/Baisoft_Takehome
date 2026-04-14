@@ -35,11 +35,11 @@ cd Baisoft_Takehome
 
 ### 2) Backend setup
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
+cd backend #move to backend folder
+python -m venv venv # create virtual environment
+venv\Scripts\activate #activate venv
+pip install -r requirements.txt # Install dependencies
+copy .env.example .env
 python manage.py migrate
 python manage.py runserver
 ```
